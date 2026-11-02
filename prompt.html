@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Prompt | Galibi AI</title>
+  <meta name="description" content="Animasyon üretimi videosunda kullanılan master prompt ve ne istediğinin analizi.">
+  <link rel="icon" type="image/png" href="fav.png">
+  <link rel="apple-touch-icon" href="fav.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: #0d0d0d;
+      --panel-2: #131313;
+      --line: #222222;
+      --text: #f2f2f2;
+      --muted: #a1a1a1;
+      --accent: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: radial-gradient(circle at 20% -10%, #1a1a1a 0%, transparent 45%),
+                        radial-gradient(circle at 90% 110%, #151515 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 20px 48px; }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 28px; }
+    .back {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 600;
+      padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px;
+      transition: color .2s, border-color .2s, transform .2s;
+    }
+    .back:hover { color: var(--text); border-color: #444; transform: translateX(-2px); }
+    .back svg { width: 16px; height: 16px; }
+    .tag {
+      font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted); border: 1px solid var(--line); padding: 6px 12px; border-radius: 999px;
+    }
+
+    .hero { margin-bottom: 28px; }
+    .hero h1 { font-size: clamp(26px, 4vw, 40px); font-weight: 800; letter-spacing: -.02em; }
+    .hero p { color: var(--muted); margin-top: 8px; max-width: 720px; }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .card-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-bottom: 1px solid var(--line);
+      font-weight: 700; font-size: 14px;
+    }
+    .card-head .dots { display: flex; gap: 6px; margin-right: 4px; }
+    .card-head .dots i { width: 10px; height: 10px; border-radius: 50%; background: #2a2a2a; display: block; }
+    .card-head small { margin-left: auto; color: var(--muted); font-weight: 500; }
+
+    .prompt-box {
+      padding: 20px;
+      max-height: 68vh;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #dcdcdc;
+      white-space: pre-wrap;
+      word-break: break-word;
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
+    }
+    .copy-bar { padding: 16px 18px; border-top: 1px solid var(--line); background: var(--panel-2); }
+    .copy-btn {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: var(--accent); color: #000; border: 0; cursor: pointer;
+      font: inherit; font-weight: 800; font-size: 15px;
+      padding: 14px 18px; border-radius: 14px;
+      transition: transform .15s, box-shadow .2s, background .2s;
+    }
+    .copy-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 30px rgba(255,255,255,.12); }
+    .copy-btn:active { transform: translateY(0) scale(.99); }
+    .copy-btn svg { width: 18px; height: 18px; }
+    .copy-btn.done { background: #2ecc71; color: #04210f; }
+
+    .analysis { padding: 18px; display: flex; flex-direction: column; gap: 12px; max-height: 80vh; overflow: auto; scrollbar-width: thin; scrollbar-color: #333 transparent; }
+    .summary {
+      padding: 14px 16px; border-radius: 14px; background: var(--panel-2);
+      border: 1px solid var(--line); font-size: 14px; color: #d6d6d6;
+    }
+    .summary b { color: #fff; }
+    .step {
+      display: grid; grid-template-columns: 34px 1fr; gap: 12px;
+      padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-2);
+    }
+    .num {
+      width: 34px; height: 34px; border-radius: 10px; background: #fff; color: #000;
+      display: grid; place-items: center; font-weight: 800; font-size: 14px;
+    }
+    .num.warn { background: #ffd24a; }
+    .step h3 { font-size: 14.5px; font-weight: 700; margin-bottom: 4px; }
+    .step p, .step li { font-size: 13px; color: var(--muted); }
+    .step ul { padding-left: 16px; margin-top: 4px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip {
+      font-size: 11.5px; font-weight: 600; color: #ddd; padding: 3px 9px;
+      border: 1px solid #2d2d2d; border-radius: 999px; background: #0a0a0a;
+    }
+    .alert {
+      padding: 14px 16px; border-radius: 14px; font-size: 13.5px;
+      border: 1px solid #5a4a14; background: #1a1505; color: #f3dd8a;
+    }
+    .alert b { color: #ffd24a; }
+
+    footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 36px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Bağlantılara dön
+      </a>
+      <span class="tag">Son Video</span>
+    </div>
+
+    <section class="hero">
+      <h1>Master Prompt</h1>
+      <p>Animasyon üretimi videosunda kullandığım prompt. Soldan tek tıkla kopyala, sağdan promptun yapay zekâdan tam olarak ne istediğine göz at.</p>
+    </section>
+
+    <div class="grid">
+      <!-- SOL: PROMPT + KOPYALA -->
+      <section class="card" aria-label="Master Prompt">
+        <div class="card-head">
+          <span class="dots"><i></i><i></i><i></i></span>
+          master-prompt.md
+          <small id="charCount"></small>
+        </div>
+        <div class="prompt-box" id="promptView" tabindex="0"></div>
+        <div class="copy-bar">
+          <button class="copy-btn" id="copyBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span id="copyLabel">Promptu Kopyala</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- SAĞ: ANALİZ -->
+      <aside class="card" aria-label="Promptun analizi">
+        <div class="card-head">Bu prompt yapay zekâdan ne istiyor?</div>
+        <div class="analysis">
+          <div class="summary">
+            <b>Özet:</b> Yapay zekâyı bir motion graphics stüdyosu gibi çalıştırıp, YouTube kanalın için <b>~30 sn'lik, 9:16 dikey, sesli ve MP4 çıktılı</b> bir tanıtım videosu üretmesini istiyor. Kodlama <b>Remotion + React</b> ile yapılıyor.
+          </div>
+
+          <div class="alert">
+            <b>Kritik kural:</b> Yapay zekâ önce hiçbir şey üretmeden senden bilgi ve dosyaları isteyecek. Sen hepsini verip özet planı onaylamadan kod, paket kurulumu, API çağrısı ya da animasyon yok.
+          </div>
+
+          <div class="step">
+            <div class="num warn">1</div>
+            <div>
+              <h3>Önce senden 13 şey istiyor</h3>
+              <p>Üretime geçmeden tek seferde toplanacak bilgiler:</p>
+              <div class="chips">
+                <span class="chip">Logo (PNG)</span><span class="chip">Kanal adı</span><span class="chip">Açıklama</span><span class="chip">Kategori</span><span class="chip">Video başlıkları</span><span class="chip">İletişim mesajı</span><span class="chip">Sosyal linkler</span><span class="chip">Font ailesi</span><span class="chip">Font dosyaları</span><span class="chip">Renkler</span><span class="chip">Referanslar</span><span class="chip">ElevenLabs API Key</span><span class="chip">Voice ID</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">2</div>
+            <div>
+              <h3>Premium, minimalist tasarım dili</h3>
+              <p>Apple tarzı sadelik: siyah-beyaz ağırlıklı palet, yüksek kontrast, güçlü tipografi, bol negatif alan. Neon, rastgele gradient ve RGB efektleri yasak. Logodaki renk (ör. sarı) yalnızca kontrollü vurgu olabilir. Sadece senin verdiğin font kullanılacak, logo asla yeniden çizilmeyecek.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">3</div>
+            <div>
+              <h3>5 sahnelik hikâye</h3>
+              <ul>
+                <li><b>Intro:</b> tipografi + sinematik iPhone tarzı telefon girişi</li>
+                <li><b>Kanal açılışı:</b> telefonda gerçekçi YouTube kanal sayfası</li>
+                <li><b>Gezinme:</b> scroll ve video kartlarıyla gerçek başlıklar</li>
+                <li><b>Abone ol:</b> buton mikro animasyonu, zil bildirimi</li>
+                <li><b>Final:</b> iletişim mesajı, sosyal linkler ve logo</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">4</div>
+            <div>
+              <h3>Amatör CSS animasyonu değil, gerçek motion design</h3>
+              <p>Easing eğrileri, mask ve shape animasyonları, kinetic typography, parallax, stagger, motion blur ve kamera hareketleri isteniyor. Her hareketin bir amacı olmalı, sahneler birbirine kopuksuz bağlanmalı.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">5</div>
+            <div>
+              <h3>Türkçe seslendirme (ElevenLabs)</h3>
+              <p>Seslendirme ElevenLabs API ile üretilecek, güncel model (<code>eleven_v4</code> desteği) ve Audio Tags araştırılacak. API anahtarı koda yazılmayacak, <code>.env</code> kullanılacak, GitHub'a gitmeyecek.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">6</div>
+            <div>
+              <h3>Ölçülü ses tasarımı</h3>
+              <p>UI tıkları, whoosh'lar, bildirim sesleri, hafif ambiyans ve minimal müzik. Anlatım hep önde, hedef yaklaşık -16 LUFS ve -1 dBTP.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">7</div>
+            <div>
+              <h3>Teknik altyapı ve mimari</h3>
+              <p>Remotion merkezli; gerekirse React, TypeScript, Node, FFmpeg, GSAP, SVG. Kod; IntroScene, PhoneReveal, ChannelInterface, VideoBrowsing, SubscribeInteraction, ContactReveal, AudioTimeline ve MainComposition gibi modüllere bölünecek, zamanlamalar merkezi yönetilecek.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">8</div>
+            <div>
+              <h3>Önce araştırma</h3>
+              <p>Apple HIG Motion, Remotion ve ElevenLabs dokümanları, Audio Tags sayfası ile premium reklam, kinetic typography ve ses tasarımı referansları incelenip projeye uygulanacak.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">9</div>
+            <div>
+              <h3>Net teknik çıktı</h3>
+              <div class="chips">
+                <span class="chip">1080 × 1920</span><span class="chip">9:16</span><span class="chip">30 FPS</span><span class="chip">~900 kare</span><span class="chip">MP4 / H.264</span><span class="chip">~30 sn</span>
+              </div>
+              <p style="margin-top:8px">Baştan dikey tasarlanacak, yatay videoyu kırpmak yasak. Instagram Reels arayüzü için güvenli alanlar bırakılacak.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">10</div>
+            <div>
+              <h3>Teslimden önce kalite kontrol</h3>
+              <p>Takılma, geçişler, ses senkronu, logo, font, okunabilirlik, renk tutarlılığı, çözünürlük ve MP4 oynatılabilirliği kontrol edilip gerekirse yeniden render alınacak. Sonuçta kod projesiyle birlikte izlenebilir bir MP4 teslim edilecek.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>Galibi AI &bull; Kaşığı bükmeye çalışma.</footer>
+  </div>
+
+  <script type="text/plain" id="masterPrompt"># MASTER PROMPT — PROFESYONEL MOTION GRAPHICS VİDEO ÜRETİMİ
+
+Sen sıradan bir yapay zekâ asistanı değilsin. Kendini profesyonel bir motion graphics stüdyosu, kreatif yönetmen, animasyon tasarımcısı, ses tasarımcısı ve deneyimli bir video geliştiricisi olarak konumlandır.
+
+Görevin, vereceğim bilgiler ve dosyalar doğrultusunda yaklaşık 30 saniyelik, profesyonel bir tasarım stüdyosunun elinden çıkmış gibi görünen, yüksek kaliteli bir YouTube kanal tanıtım videosu üretmek.
+
+Bu projede yalnızca bir video hazırlamanı istemiyorum. Görsel tasarımından animasyonlarına, seslendirmesinden ses efektlerine kadar her ayrıntısı düşünülmüş, yaratıcı ve profesyonel bir reklam filmi üretmeni istiyorum.
+
+**ÇOK ÖNEMLİ: Henüz hiçbir şeye başlama. Önce aşağıdaki hazırlık aşamasını tamamla ve benden gerekli bilgileri ve dosyaları iste. Ben tüm bilgileri sağlamadan kod yazma, paket kurma, API çağrısı yapma veya animasyon üretmeye başlama.**
+
+---
+
+## 1. ÖNCE BENDEN GEREKLİ BİLGİLERİ İSTE
+
+Projeye başlamadan önce aşağıdaki bilgileri ve dosyaları benden talep et:
+
+1. **Kanal logosu:** PNG formatında, tercihen transparan arka planlı logo dosyam.
+2. **Kanal adı:** YouTube kanalımın tam adı.
+3. **Kanal açıklaması:** Kanalımın ne hakkında olduğu ve izleyiciye ne sunduğu.
+4. **Kanal kategorisi:** Teknoloji, yapay zekâ, eğitim vb.
+5. **Video örnekleri:** Tanıtımda gösterilebilecek gerçek video başlıklarım.
+6. **İletişim mesajı:** Videonun sonunda gösterilecek iletişim çağrısı.
+7. **Sosyal medya bağlantıları:** Varsa web sitesi ve sosyal medya hesaplarım.
+8. **Font ailesi:** Videoda kullanılmasını istediğim yazı tipi.
+9. **Font dosyaları:** Varsa WOFF2, WOFF, TTF veya OTF dosyaları.
+10. **Renkler:** Marka renklerim ve varsa özel tasarım tercihlerim.
+11. **Referanslar:** Beğendiğim video, animasyon veya tasarım örnekleri.
+12. **ElevenLabs API Key:** Seslendirme üretimi için API anahtarım.
+13. **ElevenLabs Voice ID:** Kullanılmasını istediğim sesin Voice ID bilgisi.
+
+Eksik olan bilgileri tek tek sormak yerine mümkün olduğunca bir arada talep et.
+
+Bütün bilgileri aldıktan sonra projeyi nasıl gerçekleştireceğini özetle ve onayımı bekle.
+
+---
+
+## 2. YARATICI YÖNETMENLİK VE TASARIM DİLİ
+
+Bu videonun görsel dili premium, minimalist, modern ve sofistike olmalı.
+
+Apple'ın ürün tanıtımlarındaki görsel sadelikten, modern teknoloji reklamlarından ve profesyonel motion graphics stüdyolarının çalışmalarından ilham al.
+
+### Renk paleti
+
+Ana renk paletimiz kesinlikle siyah ve beyaz ağırlıklı olmalı.
+
+Kullanılabilecek temel renkler:
+
+- #000000
+- #0A0A0A
+- #FFFFFF
+- #F2F2F2
+- #A1A1A1
+- #222222
+
+Renk kullanımında kesinlikle disiplinli ol.
+
+Rastgele renk kombinasyonları, gereksiz gradientler, neon renkler, RGB efektleri ve birbirinden bağımsız renk geçişleri kullanma.
+
+YouTube'un kendi kırmızısı yalnızca YouTube arayüzü ve ilgili marka öğelerinde kullanılabilir.
+
+Logomda bulunan sarı gibi marka renkleri varsa bunları kontrollü bir vurgu rengi olarak kullanabilirsin. Ancak logom sarı diye bütün videoyu sarıya boyama.
+
+**Ana tasarım yaklaşımımız: Az renk, yüksek kontrast, güçlü tipografi ve bol negatif alan.**
+
+### Tipografi
+
+Benden aldığın font ailesini kullan.
+
+Başka font ailesi kullanma.
+
+Verdiğim fontun farklı ağırlıkları varsa tasarımda bunlardan yararlanabilirsin. Font dosyalarını projeye doğru şekilde entegre et.
+
+Tipografi animasyonlarında profesyonel kinetic typography tekniklerinden yararlan.
+
+### Logo kullanımı
+
+Sana verdiğim PNG logoyu doğrudan kullan.
+
+Logoyu yeniden çizme, değiştirme, deforme etme veya farklı bir tasarımla değiştirme.
+
+Orijinal en-boy oranını, transparan arka planını ve görsel bütünlüğünü koru.
+
+---
+
+## 3. VİDEONUN HİKÂYESİ VE SAHNE AKIŞI
+
+Video yaklaşık 30 saniye sürmeli.
+
+Tamamen motion graphics teknikleriyle hazırlanmalı. Gerçek insan görüntüleri, stok videolar veya rastgele karakterler kullanma.
+
+Ana fikir: Premium bir akıllı telefon üzerinden YouTube kanalımın tanıtılması.
+
+### Sahne 1 — Intro
+
+Video güçlü ve dikkat çekici bir girişle başlamalı.
+
+Minimalist siyah bir ortamda tipografik hareketler, ışık ve şekil animasyonları kullanılabilir.
+
+Ardından premium bir iPhone tarzı telefon mockup'ı sahneye girmeli.
+
+Telefonun ortaya çıkışı sıradan bir fade-in olmamalı. Profesyonel easing, scale, rotation ve parallax hareketleriyle sinematik bir giriş oluştur.
+
+### Sahne 2 — Kanalın açılması
+
+Telefonun ekranında gerçek bir YouTube kanal sayfası açılmalı.
+
+Benden aldığın:
+
+- Kanal logosu
+- Kanal adı
+- Kanal açıklaması
+- Marka görselleri
+
+doğrudan arayüze entegre edilmeli.
+
+Arayüz gerçekçi, temiz ve kaliteli görünmeli.
+
+YouTube'un tasarım diline uygun bir kanal deneyimi oluştur.
+
+### Sahne 3 — Videolar arasında gezinme
+
+Kanal içerisindeki video içerikleri gösterilmeli.
+
+Kullanıcı telefon ekranında videoları inceliyormuş gibi bir animasyon gerçekleştir.
+
+Scroll animasyonları, video kartlarının hareketleri, hover benzeri etkileşimler ve yumuşak geçişler kullan.
+
+Benden aldığın gerçek video başlıklarını kullan.
+
+### Sahne 4 — Abone olma etkileşimi
+
+Telefon ekranındaki abone ol butonuna tıklanmalı.
+
+Butonun durumu profesyonel bir mikro animasyonla değişmeli.
+
+Abone olundu durumu açıkça görülmeli.
+
+Gerekliyse bildirim zilinin açılmasını da kısa ve zarif bir animasyonla göster.
+
+Bu sahne videonun en tatmin edici etkileşimlerinden biri olmalı.
+
+### Sahne 5 — Final ve iletişim
+
+Telefon arayüzü yaratıcı bir geçişle kapanmalı veya dönüşmeli.
+
+Ekranda kanalın iletişim mesajı ve benden aldığın sosyal medya bağlantıları gösterilmeli.
+
+Final güçlü, temiz ve akılda kalıcı olmalı.
+
+Logo son sahnede doğru oranlarıyla yer almalı.
+
+---
+
+## 4. ANİMASYON KALİTESİ
+
+Bu bölüm projenin en önemli noktalarından biri.
+
+Basit CSS animasyonlarıyla hazırlanmış amatör bir web sayfası görünümü istemiyorum.
+
+Profesyonel motion graphics yaklaşımını benimse.
+
+Özellikle:
+
+- Smooth easing curves
+- Cinematic transitions
+- Mask animations
+- Shape animations
+- Kinetic typography
+- Parallax effects
+- Scale and rotation transitions
+- Micro-interactions
+- Motion blur (gerektiği yerde)
+- Stagger animations
+- Sophisticated camera movements
+
+gibi tekniklerden yararlan.
+
+Animasyonların tamamı birbiriyle uyumlu olmalı.
+
+Her hareketin bir amacı bulunmalı. Gereksiz hareket, aşırı efekt veya izleyiciyi yoran animasyonlar kullanma.
+
+Geçişler birbirinden kopuk olmamalı. Bütün sahneler tek bir bütünün parçaları gibi hissettirmeli.
+
+---
+
+## 5. SESLENDİRME — ELEVENLABS
+
+Videoda Türkçe seslendirme kullanmanı istiyorum.
+
+Seslendirmeyi ElevenLabs API üzerinden üret.
+
+Kullanacağım API Key ve Voice ID bilgilerini benden al.
+
+API anahtarını kesinlikle kaynak kodun içine doğrudan yazma. Environment variable veya .env dosyası kullan.
+
+API anahtarını GitHub'a gönderme, loglara yazdırma veya başka bir yerde açık biçimde paylaşma.
+
+### Model ve seslendirme
+
+ElevenLabs'ın uygun en güncel seslendirme modelini araştır. Özellikle `eleven_v4` desteğini ve kullanım koşullarını kontrol et.
+
+Seslendirme Türkçe olmalı.
+
+Voice ID olarak benden aldığın sesi kullan.
+
+Seslendirmede:
+
+- Doğal konuşma ritmi
+- Doğru vurgu
+- Profesyonel anlatım
+- Duygusal denge
+- Doğal duraklamalar
+
+önemli.
+
+ElevenLabs Audio Tags özelliğini desteklenen model ve kullanım koşullarına göre araştır.
+
+Gerektiğinde `[excited]`, `[whispers]`, `[serious]` gibi uygun etiketler kullanabilirsin. Ancak bu etiketleri sırf kullanmış olmak için ekleme. Yalnızca gerçekten seslendirmeye katkı sağlayacakları yerde kullan.
+
+Seslendirme metnini 30 saniyelik video süresine uygun şekilde hazırla.
+
+Seslendirme video akışıyla senkronize olmalı.
+
+---
+
+## 6. SES TASARIMI VE MÜZİK
+
+Profesyonel bir ses tasarımı oluştur.
+
+Şunlardan yararlan:
+
+- Subtle UI clicks
+- Button interaction sounds
+- Smooth whoosh effects
+- Soft transitions
+- Notification sounds
+- Ambient textures
+- Minimal background music
+
+Ses efektleri kesinlikle aşırı yüksek, komik veya rahatsız edici olmamalı.
+
+Her animasyonun sesle desteklenmesi gerekmiyor. Ses tasarımını gerektiği yerde ve ölçülü kullan.
+
+Seslendirme her zaman ön planda kalmalı.
+
+Müzik, anlatımı bastırmamalı.
+
+Ses miksajında profesyonel yayın standartlarını hedefle. Yaklaşık -16 LUFS entegre ses yüksekliği ve -1 dBTP true peak değerlerini başlangıç hedefi olarak değerlendir.
+
+---
+
+## 7. TEKNOLOJİ VE GELİŞTİRME ALTYAPISI
+
+Bu projeyi yalnızca görsel olarak değil, teknik olarak da profesyonel şekilde gerçekleştir.
+
+Gerektiğinde aşağıdaki teknolojileri kullan:
+
+- Remotion
+- React
+- TypeScript
+- Node.js
+- FFmpeg
+- GSAP
+- Framer Motion
+- Theatre.js
+- SVG
+- Canvas
+
+Remotion'ı video üretimi ve render sürecinin merkezine koymanı tercih ediyorum.
+
+Ancak teknoloji seçimini araştırma sonucuna göre yap. Sırf listede bulunduğu için gereksiz paket kurma.
+
+Kod yapısını bileşenlere ayır.
+
+Örnek mimari:
+
+- IntroScene
+- PhoneReveal
+- ChannelInterface
+- VideoBrowsing
+- SubscribeInteraction
+- ContactReveal
+- AudioTimeline
+- MainComposition
+
+Kod okunabilir, modüler ve kolay düzenlenebilir olmalı.
+
+Animasyonların zamanlamalarını merkezi bir şekilde yönet.
+
+Gerektiğinde GitHub üzerinde araştırma yap. Projeye gerçekten katkı sağlayacak açık kaynak kütüphaneleri ve örnekleri incele.
+
+---
+
+## 8. ARAŞTIRMA VE REFERANS İNCELEMESİ
+
+Kod yazmaya başlamadan önce araştırma yap.
+
+Özellikle aşağıdaki kaynakları incele:
+
+Apple Human Interface Guidelines — Motion:
+https://developer.apple.com/design/human-interface-guidelines/motion
+
+Remotion Documentation:
+https://www.remotion.dev/docs/
+
+ElevenLabs Documentation:
+https://elevenlabs.io/docs/
+
+ElevenLabs Audio Tags:
+https://elevenlabs.io/docs/help-center/product/core-capabilities/text-to-speech/how-do-audio-tags-work-with-eleven-v3-and-v4
+
+Bunlara ek olarak:
+
+- Premium teknoloji reklamları
+- Apple tarzı ürün animasyonları
+- Minimalist motion graphics
+- Profesyonel kinetic typography
+- Modern UI animasyonları
+- Motion design ses tasarımı
+
+konularında araştırma yap.
+
+Araştırma sonucunda elde ettiğin bilgileri doğrudan projeye uygula.
+
+---
+
+## 9. TEKNİK VİDEO STANDARTLARI
+
+Bu video Instagram Reels ve dikey sosyal medya formatında kullanılacak.
+
+Kesin teknik özellikler:
+
+- Çözünürlük: 1080 × 1920
+- En-boy oranı: 9:16
+- Süre: Yaklaşık 30 saniye
+- FPS: 30
+- Toplam hedef kare: 900
+- Çıktı: MP4
+- Codec: H.264
+
+**ÖNEMLİ:** Videoyu kesinlikle yatay tasarlayıp sonradan dikey kırpma.
+
+Tüm kompozisyon en başından itibaren 9:16 formatında tasarlanmalı.
+
+Instagram Reels arayüzündeki kullanıcı adı, açıklama ve sağ taraftaki etkileşim ikonları gibi alanları dikkate alarak güvenli alanlar bırak.
+
+Önemli metinleri ve görsel öğeleri ekranın kenarlarına çok yaklaştırma.
+
+Telefon mockup'ının kendi en-boy oranı ile videonun 9:16 formatını birbirine karıştırma.
+
+---
+
+## 10. KALİTE KONTROL VE SONUÇ
+
+Render işlemini tamamladığında projeyi doğrudan teslim etme.
+
+Önce videoyu baştan sona kontrol et.
+
+Şunları doğrula:
+
+- Animasyonlarda takılma var mı?
+- Sahne geçişleri düzgün mü?
+- Seslendirme ile animasyonlar senkronize mi?
+- Logo doğru görünüyor mu?
+- Font doğru kullanılmış mı?
+- Yazılar okunabilir mi?
+- Renk paleti tutarlı mı?
+- Telefon arayüzü gerçekçi mi?
+- Ses seviyeleri dengeli mi?
+- Video 1080×1920 çözünürlüğünde mi?
+- MP4 dosyası sorunsuz oynatılıyor mu?
+
+Gerekirse hataları düzelt ve yeniden render al.
+
+Sonuç olarak bana yalnızca bir kod projesi değil, çalışır durumda, izlenebilir ve yüksek kaliteli bir MP4 video teslim et.
+
+Proje dosyalarını da düzenli bir klasör yapısında sakla.
+
+---
+
+# SON TALİMAT
+
+Bu projeyi sıradan bir yapay zekâ videosu gibi ele alma.
+
+Bir tasarım stüdyosunun müşterisi için hazırladığı profesyonel reklam filmi gibi ele al.
+
+Görsel kalite, animasyon akıcılığı, tipografi, ses tasarımı ve marka tutarlılığı konusunda taviz verme.
+
+Yaratıcı kararlar alırken sadelikten uzaklaşma. Her sahnenin bir amacı olsun.
+
+**Önce benden gerekli tüm bilgileri ve dosyaları iste. Ben bunları sağlamadan hiçbir üretim işlemine başlama.**</script>
+
+  <script>
+    (function () {
+      var raw = document.getElementById('masterPrompt').textContent.replace(/^\n/, '');
+      var view = document.getElementById('promptView');
+      var btn = document.getElementById('copyBtn');
+      var label = document.getElementById('copyLabel');
+      view.textContent = raw;
+      document.getElementById('charCount').textContent = raw.length.toLocaleString('tr-TR') + ' karakter';
+
+      function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        return ok;
+      }
+
+      function done(ok) {
+        label.textContent = ok ? 'Kopyalandı!' : 'Kopyalanamadı, elle seç';
+        btn.classList.toggle('done', ok);
+        setTimeout(function () {
+          label.textContent = 'Promptu Kopyala';
+          btn.classList.remove('done');
+        }, 2200);
+      }
+
+      btn.addEventListener('click', function () {
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(raw).then(function () { done(true); }, function () { done(fallbackCopy(raw)); });
+        } else {
+          done(fallbackCopy(raw));
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
