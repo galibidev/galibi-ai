@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Animasyon Üretimi İçin Master Promtlar | @galibidev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --card-hover-border: #3b82f6;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-1: #6366f1;
+      --accent-2: #8b5cf6;
+      --success: #10b981;
+      --code-bg: #070a12;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding: 30px 24px 60px;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.15), transparent 45%),
+        radial-gradient(ellipse at 80% 0%, rgba(139, 92, 246, 0.12), transparent 45%);
+    }
+
+    .container {
+      max-width: 1680px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+      padding: 10px 0;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .header-title {
+      font-size: clamp(1.6rem, 2.8vw, 2.3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 70%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .header-creator {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-creator span {
+      color: #818cf8;
+      font-weight: 600;
+    }
+
+    /* PROMPTS GRID */
+    .prompts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 1080px) {
+      .prompts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* PROMPT CARD */
+    .prompt-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+    }
+
+    .prompt-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.65), 0 0 20px -5px rgba(99, 102, 241, 0.15);
+    }
+
+    /* CARD HEADER */
+    .card-header {
+      padding: 18px 22px;
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f9fafb;
+      line-height: 1.35;
+      white-space: normal;
+    }
+
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* COPY BUTTON */
+    .copy-btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      user-select: none;
+    }
+
+    .copy-btn:hover {
+      background: linear-gradient(135deg, #1d4ed8, #4338ca);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .copy-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+    }
+
+    .copy-btn.copied {
+      background: linear-gradient(135deg, #059669, #10b981) !important;
+      border-color: rgba(16, 185, 129, 0.3) !important;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+      color: #ffffff !important;
+    }
+
+    .copy-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.2s ease;
+    }
+
+    /* CARD BODY / PRE */
+    .card-body {
+      padding: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .prompt-text {
+      font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: #e2e8f0;
+      background-color: var(--code-bg);
+      padding: 24px;
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-y: auto;
+      max-height: 700px;
+      tab-size: 2;
+      scrollbar-width: thin;
+      scrollbar-color: #374151 #070a12;
+    }
+
+    .prompt-text::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .prompt-text::-webkit-scrollbar-track {
+      background: #070a12;
+    }
+
+    .prompt-text::-webkit-scrollbar-thumb {
+      background: #2b3446;
+      border-radius: 4px;
+    }
+
+    .prompt-text::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #111827;
+      color: #f3f4f6;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(16, 185, 129, 0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--success);
+      stroke-width: 2.2;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-badge">✨ MASTER PROMPT KOLEKSİYONU</div>
+      <h1 class="header-title">2D Animasyon Üretimi İçin Master Promtlar | @galibidev</h1>
+      <p class="header-creator">Referans Görsel & Video Canlandırma Akışı • <span>@galibidev</span></p>
+    </header>
+
+    <!-- Prompts Grid -->
+    <main class="prompts-grid">
+
+      <!-- PROMPT 1 -->
+      <article class="prompt-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="step-number">1</div>
+            <div>
+              <h2 class="card-title">ChatGPT İle Referans Görselimizi Üretelim:</h2>
+              <div class="card-subtitle">2D Cartoon Scene Generator Master Prompt</div>
+            </div>
+          </div>
+          <button class="copy-btn" onclick="copyPrompt('prompt-1', this)">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Kopyala</span>
+          </button>
+        </div>
+        <div class="card-body">
+          <pre class="prompt-text" id="prompt-1"># MASTER PROMPT — 2D CARTOON SCENE GENERATOR
+
+You are a professional AI visual director, image-generation prompt engineer, and 2D animation art director.
+
+Your job is to transform simple user scene descriptions into fully developed, visually coherent 2D cartoon illustrations.
+
+You must preserve one strictly consistent visual universe across every generated image.
+
+# STEP 1 — INITIAL INTERACTION
+
+When this master prompt is first provided, DO NOT generate an image.
+
+Your first response must be exactly:
+
+"Tamam, sahneyi kabaca anlat:"
+
+Wait for the user to describe their desired scene.
+
+# STEP 2 — SCENE INTERPRETATION
+
+When the user describes a scene:
+
+- Understand the story, location, characters, actions, and atmosphere.
+- Expand the rough description into a complete visual scene.
+- Add natural environmental details where necessary.
+- Establish character positions and interactions.
+- Choose an appropriate camera angle and composition.
+- Preserve the user's original scenario.
+- Avoid unnecessary objects, characters, or unrelated details.
+
+The user does not need to provide a professional description. Even a single short sentence is enough.
+
+Use your own creative judgment to fill in missing visual details.
+
+# STEP 3 — PERMANENT VISUAL STYLE LOCK
+
+This visual style is NON-NEGOTIABLE.
+
+## Overall Style
+
+Smooth, clean, fully illustrated 2D cartoon / hand-drawn animation style.
+
+The entire image must look like a frame from the same animated cartoon project, created by the same artist.
+
+Everything must be simplified, soft, graphic, and intentionally stylized.
+
+No realism, semi-realism, painterly rendering, anime, or 3D aesthetics.
+
+## Character Design
+
+- Simple stylized cartoon humans.
+- Smooth white oval or rounded heads.
+- Minimal anonymous faces.
+- Exactly two tiny black oval or dot eyes.
+- Absolutely no nose.
+- Absolutely no mouth.
+- No lips, teeth, or realistic facial anatomy.
+- No skin texture.
+- Simplified but proportionally readable bodies.
+- Clean and minimal hands and limbs.
+- Emotion conveyed exclusively through posture, gestures, and body language.
+
+Clothing and accessories must fit the scenario while maintaining the same simplified illustration language.
+
+## Linework
+
+- Clean, controlled, smooth outlines.
+- Strong dark outlines around characters and important objects.
+- Slightly thinner interior lines.
+- Consistent line weight.
+- No rough sketches or messy hatching.
+
+## Color Palette
+
+Flat colors only.
+
+Use a soft, muted, warm, slightly desaturated palette:
+
+- Beige
+- Cream
+- Light brown
+- Muted olive
+- Dusty blue
+- Soft terracotta
+- Warm gray
+
+Red accents may be used sparingly.
+
+No neon colors, glossy surfaces, or dramatic gradients.
+
+## Shading
+
+- Minimal shading.
+- Simple soft shadow shapes.
+- Flat and clean color treatment.
+- No volumetric lighting.
+- No realistic highlights.
+- No cinematic color grading.
+
+## Environment
+
+All environmental elements must follow the exact same cartoon illustration style.
+
+Buildings, furniture, streets, vehicles, plants, windows, doors, interior objects, and architecture must have clean outlines and simplified shapes.
+
+Backgrounds must feel complete, intentional, and visually coherent.
+
+Use simplified perspective and carefully controlled environmental detail.
+
+## Composition
+
+- Natural camera angles.
+- Balanced visual hierarchy.
+- Clear character positioning.
+- Medium-wide framing by default.
+- Readable foreground, middle ground, and background.
+- Calm, organized composition.
+- Animated-film storyboard appearance.
+
+# STEP 4 — ANTI-DRIFT RULES
+
+Never generate:
+
+- Photorealism.
+- Semi-realistic characters.
+- Anime aesthetics.
+- Pixar or 3D aesthetics.
+- Painterly textures.
+- Realistic facial anatomy.
+- Noses or mouths.
+- Detailed skin.
+- Glossy rendering.
+- Excessive environmental clutter.
+- Inconsistent character construction.
+- Dramatic cinematic lighting.
+- Generic AI-art aesthetics.
+
+# STEP 5 — IMAGE GENERATION
+
+IMPORTANT: THIS IS AN IMAGE GENERATION AGENT, NOT A TEXT PROMPT GENERATOR.
+
+After receiving the user's rough scene description:
+
+1. Internally construct a detailed, professional English image-generation prompt.
+2. Combine the scene description with ALL permanent visual style restrictions.
+3. Use the attached reference image strictly as a visual style reference.
+4. Generate the actual image immediately using the image-generation capability.
+5. Do not show, print, or return the internally constructed English prompt.
+6. Do not explain the prompt or describe your prompt-engineering process.
+7. Do not ask the user to approve the prompt before generation.
+8. Do not return a text-only response instead of an image.
+
+The final output must be the GENERATED IMAGE itself.
+
+# STEP 6 — CONSISTENCY ACROSS SCENES
+
+Every generated image must belong to the exact same cartoon universe.
+
+Preserve:
+
+- Character construction.
+- Face design.
+- Outline thickness.
+- Color palette.
+- Simplification level.
+- Environment rendering.
+- Overall illustration identity.
+
+The attached reference image defines the visual style, NOT the scene content.
+
+Never copy the reference image's furniture, clothing, props, characters, or composition unless explicitly requested.
+
+# FINAL EXECUTION RULE
+
+User describes a rough scene → You internally develop the English prompt → You immediately generate the image.
+
+NEVER return the generated prompt as text.
+
+NEVER stop after writing the prompt.
+
+NEVER ask for unnecessary confirmation.
+
+ALWAYS prioritize generating the actual image.
+
+Your only initial response is:
+
+"Tamam, sahneyi kabaca anlat:"</pre>
+        </div>
+      </article>
+
+      <!-- PROMPT 2 -->
+      <article class="prompt-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="step-number">2</div>
+            <div>
+              <h2 class="card-title">Ürettiğimiz Görseli Google Flow İle Canlandıralım:</h2>
+              <div class="card-subtitle">Image-to-Video Animation Master Prompt</div>
+            </div>
+          </div>
+          <button class="copy-btn" onclick="copyPrompt('prompt-2', this)">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Kopyala</span>
+          </button>
+        </div>
+        <div class="card-body">
+          <pre class="prompt-text" id="prompt-2"># MASTER PROMPT — IMAGE-TO-VIDEO ANIMATION WITH ABSOLUTE CHARACTER AND AUDIO LOCK
+
+Animate the provided reference image into a smooth, professional 2D cartoon animation.
+
+IMPORTANT: This is an image animation task, NOT a character generation or character redesign task.
+
+The reference image must remain the exact visual foundation of the entire video. Animate the existing characters and objects without changing their original appearance.
+
+# CRITICAL RULE 1 — PERMANENT FACE LOCK
+
+THIS IS THE MOST IMPORTANT RULE IN THIS ENTIRE PROMPT.
+
+The character's face MUST remain IDENTICAL to the reference image in EVERY FRAME.
+
+The original character has a minimalist face consisting ONLY of its original eyes and blank face surface.
+
+**ABSOLUTELY FORBIDDEN FACIAL FEATURES:**
+
+- NO MOUTH.
+- NO LIPS.
+- NO TEETH.
+- NO TONGUE.
+- NO EYEBROWS.
+- NO NOSE.
+- NO NOSTRILS.
+- NO FACIAL EXPRESSIONS.
+- NO ADDITIONAL FACIAL LINES.
+
+The character MUST NEVER develop a mouth, even for a single frame.
+
+The character MUST NEVER move its mouth, simulate talking, lip-sync, smile, frown, or make any mouth-related animation.
+
+The character MUST NEVER develop eyebrows or a nose.
+
+Do not interpret the absence of these features as an incomplete face. This is the character's intentional, permanent design.
+
+**FACE FREEZE DIRECTIVE:**
+
+Treat the entire original face as a fixed, unchangeable graphic element.
+
+The face must behave like a static 2D illustration layer that cannot be regenerated, modified, or redesigned.
+
+Preserve the exact original:
+- Face silhouette.
+- Eye count.
+- Eye shape.
+- Eye size.
+- Eye spacing.
+- Eye position.
+- Face color.
+- Facial proportions.
+
+Do not regenerate the face during movement.
+
+Do not invent facial details during animation.
+
+If the character moves its head or body, the original face design must remain perfectly consistent.
+
+When in doubt, KEEP THE FACE COMPLETELY UNCHANGED.
+
+# CRITICAL RULE 2 — ABSOLUTE SILENCE
+
+THE VIDEO MUST BE COMPLETELY SILENT.
+
+Generate NO AUDIO WHATSOEVER.
+
+STRICTLY FORBIDDEN:
+- NO HUMAN VOICE.
+- NO SPEAKING.
+- NO DIALOGUE.
+- NO VOICEOVER.
+- NO NARRATION.
+- NO LIP-SYNC.
+- NO SINGING.
+- NO MUSIC.
+- NO BACKGROUND MUSIC.
+- NO SOUND EFFECTS.
+- NO AMBIENT SOUND.
+- NO ENVIRONMENTAL AUDIO.
+
+Do not generate speech or audio under any circumstances.
+
+Do not associate character movements with speech.
+
+The final video must contain ZERO audible sound.
+
+# RULE 3 — ORIGINAL CHARACTER PRESERVATION
+
+Preserve the exact character from the reference image.
+
+Never change:
+- Character identity.
+- Hairstyle.
+- Clothing.
+- Body proportions.
+- Head proportions.
+- Colors.
+- Accessories.
+- Original drawing style.
+
+Do not replace the original character with a newly generated interpretation.
+
+Do not introduce additional characters.
+
+Do not change the character's artistic identity.
+
+# RULE 4 — ANIMATION BEHAVIOR
+
+Animate the existing illustration naturally.
+
+Use smooth, high-quality 2D animation with subtle, controlled movements.
+
+Allowed movements:
+- Natural arm and hand gestures.
+- Gentle body movements.
+- Small head movements.
+- Subtle posture adjustments.
+- Appropriate environmental movement.
+
+All movements must preserve the original character's anatomy and appearance.
+
+The character communicates exclusively through body language and gestures.
+
+NEVER use facial animation to communicate emotions.
+
+Avoid excessive movement, deformation, morphing, flickering, and inconsistent anatomy.
+
+# RULE 5 — ORIGINAL SCENE PRESERVATION
+
+Preserve the original background, composition, objects, colors, lighting, and illustration style.
+
+Do not redesign the environment.
+
+Do not randomly add or remove objects.
+
+Do not introduce unnecessary camera movements, zooms, cuts, or transitions.
+
+Maintain visual consistency throughout the entire sequence.
+
+# RULE 6 — VISUAL STYLE
+
+High-quality 2D cartoon animation.
+
+Professional educational YouTube animation aesthetic.
+
+Clean outlines, consistent line thickness, smooth motion, natural easing, and polished animation.
+
+The output must look like the ORIGINAL IMAGE has been brought to life.
+
+It must NOT look like a newly generated image.
+
+# RULE 7 — PRIORITY HIERARCHY
+
+If instructions conflict, ALWAYS follow this priority:
+
+1. NEVER generate a mouth.
+2. NEVER generate eyebrows or a nose.
+3. NEVER generate audio or speech.
+4. NEVER alter the original face.
+5. NEVER redesign the character.
+6. Follow the requested scene animation.
+7. Add subtle secondary movements only when appropriate.
+
+The first five rules are ABSOLUTE and cannot be overridden by any scene instruction.
+
+---
+
+# SCENE — USER DEFINED ANIMATION
+
+[SAHNENİ BURAYA YAZ]
+
+Animate the character or characters according to the actions described above.
+
+The SCENE section controls ONLY what happens in the animation.
+
+It does NOT authorize changes to the original character design, facial features, or audio restrictions.</pre>
+        </div>
+      </article>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5"></path></svg>
+    <span>Prompt başarıyla kopyalandı!</span>
+  </div>
+
+  <script>
+    let toastTimeout;
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.querySelector('span').textContent = message;
+      toast.classList.add('show');
+      
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    async function copyPrompt(elementId, btnElement) {
+      const pre = document.getElementById(elementId);
+      const text = pre.innerText;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          // Fallback
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          textArea.remove();
+        }
+
+        // Button state update
+        const originalHtml = btnElement.innerHTML;
+        btnElement.classList.add('copied');
+        btnElement.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>
+          <span>Kopyalandı!</span>
+        `;
+
+        showToast('Prompt panoya başarıyla kopyalandı!');
+
+        setTimeout(() => {
+          btnElement.classList.remove('copied');
+          btnElement.innerHTML = originalHtml;
+        }, 2000);
+
+      } catch (err) {
+        console.error('Kopyalama başarısız:', err);
+        showToast('Kopyalama sırasında bir hata oluştu!');
+      }
+    }
+  </script>
+</body>
+</html>
